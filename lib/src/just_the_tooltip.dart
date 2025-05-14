@@ -35,8 +35,6 @@ class JustTheTooltip extends StatefulWidget implements JustTheInterface {
     this.showDuration,
     this.triggerMode,
     this.barrierDismissible = true,
-    this.barrierColor = Colors.transparent,
-    this.barrierBuilder,
     this.enableFeedback,
     this.hoverShowDuration,
     this.fadeInDuration = const Duration(milliseconds: 150),
@@ -58,7 +56,8 @@ class JustTheTooltip extends StatefulWidget implements JustTheInterface {
     this.shadow,
     this.showWhenUnlinked = false,
     this.scrollController,
-    this.barrierInteractive = true,
+    this.barrierInteractive = false,
+    this.barrierColor,
   }) : super(key: key);
 
   @override
@@ -89,17 +88,10 @@ class JustTheTooltip extends StatefulWidget implements JustTheInterface {
   final bool barrierDismissible;
 
   @override
-  final Color barrierColor;
-
-  @override
   final TooltipTriggerMode? triggerMode;
 
   @override
   final bool? enableFeedback;
-
-  @override
-  final Widget Function(BuildContext, Animation<double>, VoidCallback)?
-      barrierBuilder;
 
   // FIXME: This happens in the non-hover (i.e. isModal) case as well.
   @override
@@ -163,6 +155,9 @@ class JustTheTooltip extends StatefulWidget implements JustTheInterface {
   final bool barrierInteractive;
 
   @override
+  final Color? barrierColor;
+
+  @override
   JustTheTooltipState<OverlayEntry> createState() =>
       _JustTheTooltipOverlayState();
 }
@@ -193,10 +188,7 @@ class _JustTheTooltipOverlayState extends JustTheTooltipState<OverlayEntry> {
 
   @override
   Widget build(BuildContext context) {
-    assert(
-      Overlay.maybeOf(context) != null,
-      '${widget.runtimeType} require an Overlay widget ancestor for correct operation.',
-    );
+    assert(Overlay.of(context, debugRequiredFor: widget) != null);
 
     return super.build(context);
   }
@@ -210,7 +202,7 @@ class _JustTheTooltipOverlayState extends JustTheTooltipState<OverlayEntry> {
     );
     final skrimOverlay = OverlayEntry(builder: (context) => _createSkrim());
 
-    final overlay = Overlay.maybeOf(context);
+    final overlay = Overlay.of(context);
 
     if (overlay == null) {
       throw StateError('Cannot find the overlay for the context $context');
@@ -252,20 +244,20 @@ class _JustTheTooltipOverlayState extends JustTheTooltipState<OverlayEntry> {
     }
   }
 
-// @override
-// void didUpdateWidget(covariant JustTheTooltip oldWidget) {
-//   super.didUpdateWidget(oldWidget);
+  // @override
+  // void didUpdateWidget(covariant JustTheTooltip oldWidget) {
+  //   super.didUpdateWidget(oldWidget);
 
-//   // This adds a post frame callback because otherwise the OverlayEntry
-//   // builder would run before the widget has a chance to update with the
-//   // newest config.
-//   WidgetsBinding.instance?.addPostFrameCallback((_) {
-//     if (mounted) {
-//       entry?.markNeedsBuild();
-//       skrim?.markNeedsBuild();
-//     }
-//   });
-// }
+  //   // This adds a post frame callback because otherwise the OverlayEntry
+  //   // builder would run before the widget has a chance to update with the
+  //   // newest config.
+  //   WidgetsBinding.instance?.addPostFrameCallback((_) {
+  //     if (mounted) {
+  //       entry?.markNeedsBuild();
+  //       skrim?.markNeedsBuild();
+  //     }
+  //   });
+  // }
 }
 
 /// This is almost a one to one mapping to [Tooltip]'s [_TooltipState] except
@@ -326,9 +318,6 @@ abstract class JustTheTooltipState<T> extends State<JustTheInterface>
   late TooltipTriggerMode triggerMode;
   late bool enableFeedback;
   late bool barrierDismissible;
-  late Color barrierColor;
-  late Widget Function(BuildContext, Animation<double>, VoidCallback)?
-      barrierBuilder;
 
   // These properties are specific to just_the_tooltip
   // static const Curve _defaultAnimateCurve = Curves.linear;
@@ -620,8 +609,6 @@ abstract class JustTheTooltipState<T> extends State<JustTheInterface>
         tooltipTheme.enableFeedback ??
         _defaultEnableFeedback;
     barrierDismissible = widget.barrierDismissible;
-    barrierColor = widget.barrierColor;
-    barrierBuilder = widget.barrierBuilder;
 
     Widget result;
 
@@ -660,19 +647,12 @@ abstract class JustTheTooltipState<T> extends State<JustTheInterface>
   }
 
   Widget _createSkrim() {
-    if (barrierBuilder != null) {
-      return Container(
-        key: skrimKey,
-        child: barrierBuilder!(context, _animationController, _hideTooltip),
-      );
-    }
     return GestureDetector(
       key: skrimKey,
       behavior: barrierDismissible
           ? HitTestBehavior.translucent
           : HitTestBehavior.deferToChild,
       onTap: _hideTooltip,
-      child: Container(color: barrierColor),
     );
   }
 
@@ -776,13 +756,11 @@ abstract class JustTheTooltipState<T> extends State<JustTheInterface>
           }
         },
         child: Container(
-          color: widget.barrierColor,
+          color: widget.barrierColor ?? Colors.transparent,
           child: compositedTransformFollower,
         ),
       );
     }
-
-    
   }
 
   /// This assumes the caller itself is the target
