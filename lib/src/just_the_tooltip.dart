@@ -687,96 +687,102 @@ abstract class JustTheTooltipState<T> extends State<JustTheInterface>
       color: theme.shadowColor,
     );
 
-    return GestureDetector(
-      onTap: () {
-        if (widget.barrierDismissible) {
-          _hideTooltip();
-        }
-      },
-      child: Container(
-        color: widget.barrierInteractive
-            ? null
-            : widget.barrierColor ?? Colors.transparent,
-        child: CompositedTransformFollower(
-          showWhenUnlinked: widget.showWhenUnlinked,
-          offset: targetInformation.offsetToTarget,
-          link: _layerLink,
-          child: FadeTransition(
-            opacity: CurvedAnimation(
-              parent: _animationController,
-              curve: widget.curve,
-              reverseCurve: widget.reverseCurve,
-            ),
-            child: Directionality(
-              textDirection: widget.textDirection,
-              child: Builder(
-                builder: (context) {
-                  final scrollController = widget.scrollController;
-                  final wrappedChild = Material(
-                    type: MaterialType.transparency,
-                    child: widget.content,
-                  );
+    final compositedTransformFollower = CompositedTransformFollower(
+      showWhenUnlinked: widget.showWhenUnlinked,
+      offset: targetInformation.offsetToTarget,
+      link: _layerLink,
+      child: FadeTransition(
+        opacity: CurvedAnimation(
+          parent: _animationController,
+          curve: widget.curve,
+          reverseCurve: widget.reverseCurve,
+        ),
+        child: Directionality(
+          textDirection: widget.textDirection,
+          child: Builder(
+            builder: (context) {
+              final scrollController = widget.scrollController;
+              final wrappedChild = Material(
+                type: MaterialType.transparency,
+                child: widget.content,
+              );
 
-                  if (scrollController != null) {
-                    return AnimatedBuilder(
-                      animation: scrollController,
-                      child: wrappedChild,
-                      builder: (context, child) {
-                        return PositionedTooltip(
-                          // curve: _defaultAnimateCurve,
-                          // duration: _defaultAnimateDuration,
-                          animatedTransitionBuilder:
-                              widget.animatedTransitionBuilder,
-                          margin: widget.margin,
-                          targetSize: targetInformation.size,
-                          target: targetInformation.target,
-                          offset: widget.offset,
-                          preferredDirection: widget.preferredDirection,
-                          offsetToTarget: targetInformation.offsetToTarget,
-                          borderRadius: widget.borderRadius,
-                          tailBaseWidth: widget.tailBaseWidth,
-                          tailLength: widget.tailLength,
-                          tailBuilder: widget.tailBuilder,
-                          backgroundColor:
-                              widget.backgroundColor ?? theme.cardColor,
-                          textDirection: widget.textDirection,
-                          shadow: widget.shadow ?? defaultShadow,
-                          elevation: widget.elevation,
-                          scrollPosition: scrollController.position,
-                          child: child!,
-                        );
-                      },
+              if (scrollController != null) {
+                return AnimatedBuilder(
+                  animation: scrollController,
+                  child: wrappedChild,
+                  builder: (context, child) {
+                    return PositionedTooltip(
+                      // curve: _defaultAnimateCurve,
+                      // duration: _defaultAnimateDuration,
+                      animatedTransitionBuilder:
+                          widget.animatedTransitionBuilder,
+                      margin: widget.margin,
+                      targetSize: targetInformation.size,
+                      target: targetInformation.target,
+                      offset: widget.offset,
+                      preferredDirection: widget.preferredDirection,
+                      offsetToTarget: targetInformation.offsetToTarget,
+                      borderRadius: widget.borderRadius,
+                      tailBaseWidth: widget.tailBaseWidth,
+                      tailLength: widget.tailLength,
+                      tailBuilder: widget.tailBuilder,
+                      backgroundColor:
+                          widget.backgroundColor ?? theme.cardColor,
+                      textDirection: widget.textDirection,
+                      shadow: widget.shadow ?? defaultShadow,
+                      elevation: widget.elevation,
+                      scrollPosition: scrollController.position,
+                      child: child!,
                     );
-                  }
+                  },
+                );
+              }
 
-                  return PositionedTooltip(
-                    // curve: _defaultAnimateCurve,
-                    // duration: _defaultAnimateDuration,
-                    animatedTransitionBuilder: widget.animatedTransitionBuilder,
-                    margin: widget.margin,
-                    targetSize: targetInformation.size,
-                    target: targetInformation.target,
-                    offset: widget.offset,
-                    preferredDirection: widget.preferredDirection,
-                    offsetToTarget: targetInformation.offsetToTarget,
-                    borderRadius: widget.borderRadius,
-                    tailBaseWidth: widget.tailBaseWidth,
-                    tailLength: widget.tailLength,
-                    tailBuilder: widget.tailBuilder,
-                    backgroundColor: widget.backgroundColor ?? theme.cardColor,
-                    textDirection: widget.textDirection,
-                    shadow: widget.shadow ?? defaultShadow,
-                    elevation: widget.elevation,
-                    scrollPosition: null,
-                    child: wrappedChild,
-                  );
-                },
-              ),
-            ),
+              return PositionedTooltip(
+                // curve: _defaultAnimateCurve,
+                // duration: _defaultAnimateDuration,
+                animatedTransitionBuilder: widget.animatedTransitionBuilder,
+                margin: widget.margin,
+                targetSize: targetInformation.size,
+                target: targetInformation.target,
+                offset: widget.offset,
+                preferredDirection: widget.preferredDirection,
+                offsetToTarget: targetInformation.offsetToTarget,
+                borderRadius: widget.borderRadius,
+                tailBaseWidth: widget.tailBaseWidth,
+                tailLength: widget.tailLength,
+                tailBuilder: widget.tailBuilder,
+                backgroundColor: widget.backgroundColor ?? theme.cardColor,
+                textDirection: widget.textDirection,
+                shadow: widget.shadow ?? defaultShadow,
+                elevation: widget.elevation,
+                scrollPosition: null,
+                child: wrappedChild,
+              );
+            },
           ),
         ),
       ),
     );
+
+    if (widget.barrierInteractive) {
+      return compositedTransformFollower;
+    } else {
+      return GestureDetector(
+        onTap: () {
+          if (widget.barrierDismissible) {
+            _hideTooltip();
+          }
+        },
+        child: Container(
+          color: widget.barrierColor,
+          child: compositedTransformFollower,
+        ),
+      );
+    }
+
+    
   }
 
   /// This assumes the caller itself is the target
