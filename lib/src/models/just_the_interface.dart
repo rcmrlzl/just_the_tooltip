@@ -257,7 +257,4 @@ abstract class JustTheInterface extends StatefulWidget {
 
   /// Whether the barrier should be interactive.
   bool get barrierInteractive;
-
-  /// The color of the barrier.
-  Color? get barrierColor;
 }

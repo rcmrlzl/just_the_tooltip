@@ -42,7 +42,6 @@ class JustTheTooltipEntry extends StatefulWidget implements JustTheInterface {
     this.showWhenUnlinked = false,
     this.scrollController,
     this.barrierInteractive = true,
-    this.barrierColor
   });
 
   @override
@@ -144,9 +143,6 @@ class JustTheTooltipEntry extends StatefulWidget implements JustTheInterface {
 
   @override
   final bool barrierInteractive;
-
-  @override
-  final Color? barrierColor;
 
   @override
   JustTheTooltipState<Widget> createState() => _JustTheTooltipEntryState();
